@@ -33,7 +33,6 @@ class RegexMate(QDialog):
         return widgets.TextArea(self)
 
 
-
 def start():
     app = QApplication(sys.argv)
     regexmate = RegexMate()
