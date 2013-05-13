@@ -7,7 +7,7 @@ import functools
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from regexmate.regex import *
+from regex import *
 
 
 class RegexForm(QWidget):
