@@ -8,13 +8,18 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import widgets
+from regex import *
 
 
 class RegexMate(QDialog):
     """Main widget for the application"""
-    
+
     def __init__(self, parent=None):
         super(RegexMate, self).__init__(parent)
+        # handle all the Regular Expression stuff
+        self._validator = RegexValidator()
+
+        # create layout and add widgets
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.create_regex_form())
         self.layout.addWidget(self.create_input_sheet())
@@ -25,12 +30,12 @@ class RegexMate(QDialog):
     def create_regex_form(self):
         """Create appropriate widgets to enter the regex and supported
         parameters"""
-        return widgets.RegexForm(self)
+        return widgets.RegexForm(self, self._validator)
 
     def create_input_sheet(self):
         """Create the widgets needed to display the text to be validated.
         Matches are also highlighted in this field."""
-        return widgets.TextArea(self)
+        return widgets.TextArea(self, self._validator)
 
 
 def start():
@@ -42,4 +47,3 @@ def start():
 
 if __name__ == '__main__':
     start()
-    

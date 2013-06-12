@@ -8,7 +8,7 @@ import re
 class RegexValidator(object):
     """Validates the Regex syntax and find the appropriate
     matches in the input text"""
-    
+
     def __init__(self, regex='', text='', flags=[]):
         self.regex = regex
         self.text = text
@@ -18,10 +18,12 @@ class RegexValidator(object):
     def update_regex(self, regex):
         """Update the regex pattern"""
         self.regex = regex
+        self.compile_regex()
 
     def update_text(self, text):
         """Update the text data"""
         self.text = text
+        self.compile_regex()
 
     def update_flags(self, flag, state):
         """Update the regex flags"""
@@ -30,7 +32,9 @@ class RegexValidator(object):
         else:
             self.flags.remove(flag)
 
-    def validate_regex(self):
+        self.compile_regex()
+
+    def compile_regex(self):
         """Compile the regex"""
         if self.regex:
             flags = reduce(lambda a, b: a | b, self.flags)
