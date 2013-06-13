@@ -12,10 +12,10 @@ class RegexForm(QWidget):
     """A Text Editor widget to enter the Regular Expression
     and choose appropriate options.
 
-    This class basically acts as
-    a widget container which actually packs an editor field to
-    enter the Regular Expression and a CheckBox widget to choose
-    Regular Expression validation options"""
+    This class basically acts as a widget container that actually
+    packs a QTextEdit field to enter the Regular Expression and a
+    QCheckBox widget to choose Regular Expression flags.
+    """
 
     def __init__(self, parent=None, validator=None):
         super(RegexForm, self).__init__(parent)
@@ -74,53 +74,73 @@ class RegexForm(QWidget):
         state = (state == Qt.Checked)
         self._validator.update_flags(flag, state)
 
-    def _recompile_regex(self, pattern):
-        """Recompiles the Regular expression with the new pattern.
-
-        Arguments:
-        - `pattern`: The updated regular expression pattern
-        """
+    def _recompile_regex(self):
+        """Recompiles the Regular expression with the new pattern."""
+        pattern = str(self.text_widget.toPlainText())
         self._validator.update_regex(pattern)
-
 
 
 class TextArea(QPlainTextEdit):
     """A Text Editor widget to enter the text data"""
 
-    MATCH_COLORS = [
-        Qt.Yellow, Qt.Blue, Qt.Red
+    # colors to represent regex match groups
+    GROUP_COLORS = [
+        Qt.yellow, Qt.blue, Qt.green
         ]
 
     def __init__(self, parent=None, validator=None):
         super(TextArea, self).__init__(parent)
         self._validator = validator
         # Re-compile the regex if the pattern changes
-        self.textChanged,connect(self._recompile_regex)
+        self.textChanged.connect(self._highlight_matches)
 
-    def _highlight_matches(self, text):
-        """Highlight matches in the text against the pattern.
+    def _highlight_matches(self):
+        """Highlight matches in the text against the pattern."""
 
-        Arguments:
-        - `text`: The input text to be highlighted against the regex match
-        """
+        # The input text to be highlighted against the regex match
+        text = str(self.toPlainText())
+        # update the regex validator
+        self._validator.update_text(text)
+
         for match in self._validator.find_matches():
-            colors = self._pick_colors(len(match.groups()))
-            for text, color in zip(match.groups(), colors):
+            # identify the number of matched groups from this text
+            groups = match.groups()
+            num_groups = len(groups)
+            if num_groups == 0:
+                # if there are no groups, find the default group
+                groups = (match.group(0), )
+                num_groups = 1
+
+            # pick different colors for each group
+            colors = self._pick_colors(num_groups)
+            # highlight groups using the chosen colors
+            for text, color in zip(groups, colors):
                 self._highlight(text, color)
 
     def _pick_colors(self, num):
-        """Returns `num` colors back for highlighting groups
+        """Returns `num` different colors for highlighting groups
 
         Arguments:
         - `num`: number of colors to return
         """
-        return self.MATCH_COLORS[:num]
+        return self.GROUP_COLORS[:num]
 
-    def _highlight(self, match, colors):
+    def _highlight(self, text, color):
         """Highlight the text with the given color
 
         Arguments:
         - `text`: text snippet to be highlighted
         - `color`: the highlight color
         """
-        pass
+        print 'Highlight %s with color %r' % (text, color)
+        fmt = QTextCharFormat()
+        fmt.setBackground(color)
+
+        ## cursor = QTextCursor(self.document())
+        ## cursor.setPosition(begin, QTextCursor.MoveAnchor)
+        ## cursor.setPosition(end, QTextCursor.KeepAnchor)
+        ## cursor.setCharFormat(fmt)
+
+        cursor = self.document().find(text)
+        if cursor:
+            cursor.setCharFormat(fmt)

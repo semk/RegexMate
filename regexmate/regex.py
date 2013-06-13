@@ -23,7 +23,6 @@ class RegexValidator(object):
     def update_text(self, text):
         """Update the text data"""
         self.text = text
-        self.compile_regex()
 
     def update_flags(self, flag, state):
         """Update the regex flags"""
@@ -37,13 +36,18 @@ class RegexValidator(object):
     def compile_regex(self):
         """Compile the regex"""
         if self.regex:
-            flags = reduce(lambda a, b: a | b, self.flags)
-            self.compiled_regex = re.compile(self.regex, self.flags)
+            flags = reduce(lambda a, b: a | b, self.flags, 0)
+            try:
+                self.compiled_regex = re.compile(self.regex, flags)
+            except:
+                # Set compiled regex to None incase of compilation errors
+                self.compiled_regex = None
 
     def find_matches(self):
         """Return the matched items in the text data"""
+        print self.regex, self.text, self.compiled_regex.pattern
         if self.text and self.compiled_regex:
+            print 'Finding matches'
             for match in self.compiled_regex.finditer(self.text):
+                print 'Found'
                 yield match
-        else:
-            yield []
