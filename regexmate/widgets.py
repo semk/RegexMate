@@ -85,7 +85,7 @@ class TextArea(QPlainTextEdit):
 
     # colors to represent regex match groups
     GROUP_COLORS = [
-        Qt.yellow, Qt.blue, Qt.green
+        Qt.yellow, Qt.green, Qt.blue
         ]
 
     def __init__(self, parent=None, validator=None):
@@ -97,25 +97,34 @@ class TextArea(QPlainTextEdit):
     def _highlight_matches(self):
         """Highlight matches in the text against the pattern."""
 
+        # unhighlight first
+        self._unhighlight()
         # The input text to be highlighted against the regex match
         text = str(self.toPlainText())
         # update the regex validator
         self._validator.update_text(text)
 
+        matched_chars = 0
+        temp_text = text
+
         for match in self._validator.find_matches():
-            # identify the number of matched groups from this text
-            groups = match.groups()
+            # identify the number of matched groups from this text, the first
+            # group being the complete matched text
+            groups = (match.group(0), ) + match.groups()
             num_groups = len(groups)
-            if num_groups == 0:
-                # if there are no groups, find the default group
-                groups = (match.group(0), )
-                num_groups = 1
 
             # pick different colors for each group
             colors = self._pick_colors(num_groups)
             # highlight groups using the chosen colors
-            for text, color in zip(groups, colors):
-                self._highlight(text, color)
+            for group_text, color in zip(groups, colors):
+                # FIXME: start and end indexes for the group text
+                start = matched_chars + temp_text.find(group_text)
+                end = start + len(group_text)
+                self._highlight(group_text, color, start, end)
+
+            # Remove the highlighted section in the text
+            matched_chars = match.end()
+            temp_text = text[matched_chars:]
 
     def _pick_colors(self, num):
         """Returns `num` different colors for highlighting groups
@@ -125,22 +134,38 @@ class TextArea(QPlainTextEdit):
         """
         return self.GROUP_COLORS[:num]
 
-    def _highlight(self, text, color):
+    def _highlight(self, text, color, start, end):
         """Highlight the text with the given color
 
         Arguments:
-        - `text`: text snippet to be highlighted
-        - `color`: the highlight color
+        - `text`  : text snippet to be highlighted
+        - `color` : the highlight color
+        - `start` : index in the text where the match starts
+        - `end`   : index in the text where the match ends
         """
-        print 'Highlight %s with color %r' % (text, color)
+        print 'Highlight %s with color %r (%d, %d)' % (text, color, start, end)
+        # FIXME: Block all signals emitted by this widget. We should do this temporarily
+        # to prevent going into an infinite signal-slot loop since the following
+        # operations emits textChanged signal that ends up calling this method (again).
+        self.blockSignals(True)
         fmt = QTextCharFormat()
         fmt.setBackground(color)
 
-        ## cursor = QTextCursor(self.document())
-        ## cursor.setPosition(begin, QTextCursor.MoveAnchor)
-        ## cursor.setPosition(end, QTextCursor.KeepAnchor)
-        ## cursor.setCharFormat(fmt)
+        cursor = QTextCursor(self.document())
+        cursor.setPosition(start, QTextCursor.MoveAnchor)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        cursor.setCharFormat(fmt)
 
-        cursor = self.document().find(text)
-        if cursor:
-            cursor.setCharFormat(fmt)
+        ## cursor = self.document().find(text)
+        ## if cursor:
+        ##     cursor.setCharFormat(fmt)
+
+        # Unlock the signals
+        self.blockSignals(False)
+
+    def _unhighlight(self):
+        """Clear the highlighting."""
+        self.blockSignals(True)
+        fmt = QTextCharFormat()
+        self.setCurrentCharFormat(fmt)
+        self.blockSignals(False)

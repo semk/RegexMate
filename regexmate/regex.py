@@ -45,9 +45,6 @@ class RegexValidator(object):
 
     def find_matches(self):
         """Return the matched items in the text data"""
-        print self.regex, self.text, self.compiled_regex.pattern
         if self.text and self.compiled_regex:
-            print 'Finding matches'
             for match in self.compiled_regex.finditer(self.text):
-                print 'Found'
                 yield match
