@@ -51,23 +51,32 @@ class RegexMate(QDialog):
 
     def create_regex_form(self):
         """Create appropriate widgets to enter the regex and supported
-        parameters"""
+        parameters.
+        """
         return widgets.RegexForm(self, self._validator)
 
     def create_input_sheet(self):
         """Create the widgets needed to display the text to be validated.
-        Matches are also highlighted in this field."""
+        Matches are also highlighted in this field.
+        """
         return widgets.TextArea(self, self._validator)
 
 
 def start():
+    # Setup the RegexMate Application. Set Icon
     app = QApplication(sys.argv)
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources/icon.png')
+    icon_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'resources/icon.png'
+        )
     app.setWindowIcon(QIcon(icon_path))
+
+    # Start the Main window
     regexmate = RegexMate()
     regexmate.show()
     app.exec_()
 
 
 if __name__ == '__main__':
+    # Everything starts from here
     start()

@@ -118,11 +118,17 @@ class TextArea(QPlainTextEdit):
         self._match_colors = []
         self._group_colors = []
 
-        # Re-compile the regex if the pattern changes
+        # Refresh the highlighting if the text changes
         self.textChanged.connect(self.highlight_matches)
 
     def highlight_matches(self):
-        """Highlight matches in the text against the pattern."""
+        """Highlight matches in the text against the pattern.
+
+        This method finds all the matches for the pattern in the text input
+        and highlight all the matches with a unique color. Each group in a
+        match is also given a unique color but it will be the same for all
+        the matches.
+        """
 
         # unhighlight first
         self._unhighlight()
@@ -190,7 +196,10 @@ class TextArea(QPlainTextEdit):
         # the following operations emits textChanged signal that ends up
         # calling this method (again).
         self.blockSignals(True)
+
         fmt = QTextCharFormat()
+        # If color is None the text area is formatted with no color. This can
+        # be used for clearing all the highlights in the text area
         if color:
             fmt.setBackground(color)
 
