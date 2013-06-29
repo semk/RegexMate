@@ -1,3 +1,3 @@
 #! /bin/sh
 
-python regexmate/launcher.py
+python ./regexmate/launcher.py

@@ -1,5 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# All Regular expression magic happens here.
+#
+# @author: Sreejith K <sreejithemk@gmail.com>
+# Created on 29th June 2013
+#
+# Licensed under MIT license. Refer COPYING for more info.
 
 
 import re

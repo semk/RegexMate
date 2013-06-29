@@ -1,5 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Qt Widgets for the main application. Includes the logic to
+# highlight matches and groups dynamically
+#
+# @author: Sreejith K <sreejithemk@gmail.com>
+# Created on 29th June 2013
+#
+# Licensed under MIT license. Refer COPYING for more info.
 
 
 import re
@@ -19,7 +27,9 @@ class RegexForm(QWidget):
     QCheckBox widget to choose Regular Expression flags.
     """
 
-    # this signal notifies any changes in the regex
+    # This signal notifies any changes in the regex. This can be a change
+    # in the regex pattern or the flags. Used for notifying the text widget
+    # to update the highlights dynamically.
     regexChanged = pyqtSignal()
 
     def __init__(self, parent=None, validator=None):
@@ -94,14 +104,20 @@ class RegexForm(QWidget):
 class TextArea(QPlainTextEdit):
     """A Text Editor widget to enter the text data"""
 
-    # colors to represent regex match groups
-    GROUP_COLORS = [
-        Qt.yellow, Qt.green, Qt.blue
-        ]
-
     def __init__(self, parent=None, validator=None):
+        """Initialize the text widget. Setup the signals and the
+        regex validator object.
+        """
         super(TextArea, self).__init__(parent)
+        # The regex validator
         self._validator = validator
+
+        # List of colors to be used for regex matches and groups inside
+        # each match. This will be dymically polulated once a regex
+        # match is made.
+        self._match_colors = []
+        self._group_colors = []
+
         # Re-compile the regex if the pattern changes
         self.textChanged.connect(self.highlight_matches)
 
@@ -115,18 +131,37 @@ class TextArea(QPlainTextEdit):
         # update the regex validator
         self._validator.update_text(text)
 
-        for match in self._validator.find_matches():
-            # highlight the matched string
+        for match_num, match in enumerate(self._validator.find_matches()):
             matched_text = match.group(0)
-            color = self._generate_random_color()
+
+            # Choose a unique color for this match. Generate a new color
+            # if there is no existing color for this match.
+            try:
+                color = self._match_colors[match_num]
+            except IndexError:
+                color = self._generate_random_color()
+                self._match_colors.append(color)
+
+            # Highlight the matched string. Tell the widget to highlight
+            # the text using its start and end indices.
             self._highlight(match.start(), match.end(), color)
 
-            # find groups and highlight them
+            # Find groups and highlight them too
             for group_num in range(len(match.groups())):
                 group_text = match.group(group_num + 1)
                 group_start_idx = match.start() + matched_text.find(group_text)
                 group_end_idx = group_start_idx + len(group_text)
-                color = self._generate_random_color()
+
+                # Choose a unique color for this group. Generate a new color
+                # if there is no existing color for this group.
+                try:
+                    color = self._group_colors[group_num]
+                except IndexError:
+                    color = self._generate_random_color()
+                    self._group_colors.append(color)
+
+                # Highlight the group string. Tell the widget to highlight
+                # the text using its start and end indices.
                 self._highlight(group_start_idx, group_end_idx, color)
 
     @staticmethod
@@ -142,7 +177,7 @@ class TextArea(QPlainTextEdit):
         blue = (205 + random.randint(0, 255)) / 2
         return QColor(red, green, blue)
 
-    def _highlight(self, start, end, color):
+    def _highlight(self, start, end, color=None):
         """Highlight the text with the given color
 
         Arguments:
@@ -150,12 +185,14 @@ class TextArea(QPlainTextEdit):
         - `end`   : index in the text where the match ends
         - `color` : the highlight color
         """
-        # FIXME: Block all signals emitted by this widget. We should do this temporarily
-        # to prevent going into an infinite signal-slot loop since the following
-        # operations emits textChanged signal that ends up calling this method (again).
+        # FIXME: Block all signals emitted by this widget. We should do this
+        # temporarily to prevent going into an infinite signal-slot loop since
+        # the following operations emits textChanged signal that ends up
+        # calling this method (again).
         self.blockSignals(True)
         fmt = QTextCharFormat()
-        fmt.setBackground(color)
+        if color:
+            fmt.setBackground(color)
 
         cursor = QTextCursor(self.document())
         cursor.setPosition(start, QTextCursor.MoveAnchor)
@@ -166,12 +203,6 @@ class TextArea(QPlainTextEdit):
         self.blockSignals(False)
 
     def _unhighlight(self):
-        """Clear the highlighting."""
-        self.blockSignals(True)
-        fmt = QTextCharFormat()
-        cursor = QTextCursor(self.document())
+        """Clear all the highlighting."""
         # FIXME: A better way to clear the highlights?
-        cursor.setPosition(0, QTextCursor.MoveAnchor)
-        cursor.setPosition(len(self.toPlainText()), QTextCursor.KeepAnchor)
-        cursor.setCharFormat(fmt)
-        self.blockSignals(False)
+        self._highlight(0, len(self.toPlainText()), color=None)
