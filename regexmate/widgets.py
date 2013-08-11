@@ -19,6 +19,7 @@ from PyQt4.QtGui import *
 
 
 class RegexForm(QWidget):
+
     """A Text Editor widget to enter the Regular Expression
     and choose appropriate options.
 
@@ -102,6 +103,7 @@ class RegexForm(QWidget):
 
 
 class TextArea(QPlainTextEdit):
+
     """A Text Editor widget to enter the text data"""
 
     def __init__(self, parent=None, validator=None):

@@ -26,6 +26,7 @@ __copyright__ = 'Copyright (c) 2013 Sreejith Kesavan'
 
 
 class RegexMate(QDialog):
+
     """Main widget for the application"""
 
     def __init__(self, parent=None):
@@ -39,7 +40,8 @@ class RegexMate(QDialog):
         self._text_area = self.create_input_sheet()
 
         # setup signals and slots
-        self._regex_form.regexChanged.connect(self._text_area.highlight_matches)
+        self._regex_form.regexChanged.connect(
+            self._text_area.highlight_matches)
 
         self.layout.addWidget(self._regex_form)
         self.layout.addWidget(self._text_area)
@@ -47,7 +49,8 @@ class RegexMate(QDialog):
         # set the window size
         self.resize(800, 600)
 
-        self.setWindowTitle('RegexMate (v%s)' % '.'.join(map(str, __version__)))
+        self.setWindowTitle('RegexMate (v%s)' %
+                            '.'.join(map(str, __version__)))
 
     def create_regex_form(self):
         """Create appropriate widgets to enter the regex and supported
@@ -68,7 +71,7 @@ def start():
     icon_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'resources/icon.png'
-        )
+    )
     app.setWindowIcon(QIcon(icon_path))
 
     # Start the Main window

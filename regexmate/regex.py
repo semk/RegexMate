@@ -10,9 +10,11 @@
 
 
 import re
+from functools import reduce
 
 
 class RegexValidator(object):
+
     """Validates the Regex syntax and find the appropriate
     matches in the input text"""
 
